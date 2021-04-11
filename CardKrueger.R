@@ -74,12 +74,16 @@ owned <- dat %>%
 
 stores = rbind(chunk1, owned$freq) * 100
 
-colnames(stores) = c("PA", "NJ")
+colnames(stores) = c("NJ", "PA")
 rownames(stores) = c("Buger King", 
                      "KFC", 
                      "Roy Rogers", 
                      "Wendys", 
                      "Company-owned")
+
+
+stores_new = cbind(stores[,2],stores[,1]) 
+colnames(stores_new) = c("NJ", "PA")
 
 # means wave 1 
 
@@ -144,7 +148,7 @@ w22 = cbind(w2[, 2], w2[, 1])
 rownames(w11) = names
 rownames(w22) = c(names, "Wage = 5.05$ (%)")
 
-table2 = rbind(stores, w11, w22)
+table2 = rbind(stores_new, w11, w22)
 
 ##### reproduce table 3 #############
 
@@ -246,7 +250,7 @@ row2_se = c(res21_se, res22_se)
 
 row3_mean = row2_mean - row1_mean
 
-## row 4
+# row 4
 
 res41 <- dat %>% 
   filter(complete.cases(FTE, FTE2)) %>%
@@ -277,7 +281,7 @@ row4_mean = c(res41$change_mean, res41_diff,
               res42$change_mean, 
               mean_diff4)
 
-## row 5
+# row 5
 
 res5 <- dat %>% 
   filter(complete.cases(FTE, FTE2))
@@ -291,7 +295,7 @@ res51 <-  res5 %>%
 
 res5$FTE2[res5$status2 %in% c(2,4,5)]
 
-## table 3
+# table 3
 
 table3 = rbind(row1_mean, 
                row1_se, 
@@ -312,30 +316,37 @@ rownames(table3) = c("Mean FTE before",
                      "Change in mean, balanced sample")
 
 
-### table 4 #####################
+### regression for table 4 #####################
+# set up the data for regression analysis
 
-## preprocessing
+## subsetting for complete cases (as per data)
 reg_dat <- dat %>% 
   filter(complete.cases(FTE, FTE2)) %>%
   filter(complete.cases(wage_st, wage_st2) | status2 == 3)
 
-## model ii 
+## model ii - ho creato una dummy for 3 delle 4 chains (non specifica quali il paper)
 reg_dat <- reg_dat  %>% 
   mutate(contr_bk = case_when(chain == "1" ~ 1, chain != "1" ~ 0), 
          contr_kfc = case_when(chain == "2" ~ 1, chain != "2" ~ 0), 
          contr_roys = case_when(chain == "3" ~ 1, chain != "3" ~ 0))
 
-## model iii 
+## model iii - creo la variabile GAP - usata nel paper 
 reg_dat <- reg_dat %>%
   mutate(gap = ifelse(wage_st >= 5.05, 0, (5.05-wage_st)/wage_st))
 reg_dat <- reg_dat %>%
   mutate(gap = ifelse(state == 0, 0, gap))
 
-## model estimate
+
+# estimate the regression model FTE2-FTE dependent
+# independent NJ
 model_1 <- lm(FTE2-FTE ~ state, data = reg_dat)
+# independent NJ + variabili di controllo chains e co-ownership
 model_2 <- lm(FTE2-FTE ~ state + contr_bk + contr_kfc + contr_roys + co_owned, data = reg_dat)
+# independent modello GAP calcolato sopra
 model_3 <- lm(FTE2-FTE ~ gap, data = reg_dat)
+# independent modello GAP + variabili di controllo chains e co-ownership
 model_4 <- lm(FTE2-FTE ~ gap + contr_bk + contr_kfc + contr_roys + co_owned, data = reg_dat)
+
 model_5 <- lm(FTE2-FTE ~ gap + contr_bk + contr_kfc + contr_roys + co_owned + southj  + centralj  + pa1  + pa2 , data = reg_dat)
 
 md1 <- summary(model_1)
@@ -344,7 +355,8 @@ md3 <- summary(model_3)
 md4 <- summary(model_4)
 md5 <- summary(model_5)
 
-## f test for exclusion of controls
+# f test for exclusion of controls
+
 f_mod2 <- linearHypothesis(model_2, c("contr_bk=0", "contr_kfc=0", "contr_roys =0", "co_owned = 0"))
 f_mod4  <- linearHypothesis(model_4, c("contr_bk=0", "contr_kfc=0", "contr_roys =0", "co_owned = 0"))
 f_mod5 <- linearHypothesis(model_5, c("contr_bk=0", "contr_kfc=0", "contr_roys =0", "co_owned = 0", "southj=0", "centralj=0", "pa1=0", "pa2=0"))
@@ -355,7 +367,7 @@ f5 <- f_mod5$`Pr(>F)`[2]
 
 f <- c("-", round(f2, 2), "-", round(f4, 2), round(f5, 2))
 
-## table 4
+## creo tabella 4 
 
 i <- c( md1$coefficients["state", "Estimate"], 
         md1$coefficients["state", "Std. Error"],
@@ -384,7 +396,7 @@ table4 <- rbind(round(app,2),
 
 colnames(table4) = c("i","ii","iii","iv", "v")
 
-rownames(table4) = c("Coefficients", "SE Coefficients","SE Regression", "Prob. Controls")
+rownames(table4) = c("Coefficient", "SE Coefficient","SE Regression", "Prob. Controls")
 
 #### save results #############
 
