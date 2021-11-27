@@ -1,8 +1,8 @@
 # Difference-in-Differences
 
-**The code contained in this repository performs causal inference between minimum wage and employment using the difference in differences method.**
+Causal inference between minimum wage and employment using the difference in differences method
 
-It replicates the study by Card and Krueger on the effect on employment of a minimum wage rise. The study compares employment in the fast food sector in New Jersey and in Pennsylvania, in February 1992 and in November 1992, after New Jersey's minimum wage rose from $4.25 to $5.05 in April 1992.
+Replication of the study by Card and Krueger on the effect on employment of a minimum wage rise. The study compares employment in the fast food sector in New Jersey and in Pennsylvania, in February 1992 and in November 1992, after New Jersey's minimum wage rose from $4.25 to $5.05 in April 1992.
 
 **References:**
 
