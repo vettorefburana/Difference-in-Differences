@@ -1,4 +1,5 @@
 
+.libPaths(new = "/packages")
 library(dplyr)
 library(foreign)
 library(tidyr)

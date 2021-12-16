@@ -27,8 +27,10 @@ header-includes:
 ---
 
 ```{r setup, include=FALSE}
+
 knitr::opts_chunk$set(dev = 'pdf')
 
+.libPaths(new = "/packages")
 library(plotly)
 library(kableExtra)
 
